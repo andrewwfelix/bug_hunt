@@ -11,11 +11,5 @@
       "src": "/api/(.*)",
       "dest": "/api/$1"
     }
-  ],
-  "env": {
-    "OPENAI_API_KEY": "@openai-api-key",
-    "GEMINI_API_KEY": "@gemini-api-key",
-    "SUPABASE_URL": "@supabase-url",
-    "SUPABASE_ANON_KEY": "@supabase-anon-key"
-  }
+  ]
 } 
