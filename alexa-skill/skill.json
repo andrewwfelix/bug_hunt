@@ -43,7 +43,7 @@
   "apis": {
     "custom": {
       "endpoint": {
-        "uri": "https://your-vercel-project.vercel.app/api/ask"
+        "uri": "https://bug-hunt-o365o6hkh-andrew-felixs-projects.vercel.app/api/ask"
       }
     }
   },
@@ -51,7 +51,7 @@
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "https://your-vercel-project.vercel.app/api/ask"
+          "uri": "https://bug-hunt-o365o6hkh-andrew-felixs-projects.vercel.app/api/ask"
         }
       }
     },

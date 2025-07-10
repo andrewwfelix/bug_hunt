@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const VERCEL_ENDPOINT = 'https://your-vercel-project.vercel.app/api/ask';
+const VERCEL_ENDPOINT = 'https://bug-hunt-o365o6hkh-andrew-felixs-projects.vercel.app/api/ask';
 
 exports.handler = async (event) => {
   console.log('Event:', JSON.stringify(event, null, 2));

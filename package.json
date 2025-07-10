@@ -4,15 +4,17 @@
   "description": "Alexa + LLM TTRPG Voice Assistant Backend",
   "main": "index.js",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "node server.js",
     "build": "vercel build",
-    "start": "node index.js"
+    "start": "node server.js",
+    "vercel-dev": "vercel dev"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
     "openai": "^4.20.1",
     "axios": "^1.6.0",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "@types/node": "^20.8.0",

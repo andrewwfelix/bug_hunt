@@ -2,11 +2,22 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const OpenAI = require('openai');
 const axios = require('axios');
 
-// Initialize LLM clients
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize LLM clients conditionally
+let genAI = null;
+let openai = null;
+
+if (process.env.GEMINI_API_KEY) {
+  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+}
+
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
+
+// Blob storage configuration
+const BLOB_STORAGE_URL = 'https://bug_hunt.blob.vercel-storage.com/Another-Bug-Hunt-v1.2.pdf';
 
 // System prompt for the TTRPG game
 const SYSTEM_PROMPT = `You are the Game Master AI running "Another Bug Hunt," a sci-fi horror TTRPG module.
@@ -24,7 +35,22 @@ IMPORTANT RULES:
 GAME CONTEXT:
 You're on a derelict space station. The crew has been missing for weeks. Strange organic growths cover the walls. Something is hunting in the shadows.
 
-MODULE REFERENCE: The game is based on "Another Bug Hunt" module stored at https://blob.vercel-storage.com/another-bug-hunt.txt
+MODULE REFERENCE: The game is based on "Another Bug Hunt v1.2" module stored at https://bug_hunt.blob.vercel-storage.com/Another-Bug-Hunt-v1.2.pdf
+
+KEY LOCATIONS:
+- Medbay: Medical facilities with organic contamination
+- Bridge: Command center with flickering screens
+- Engineering: Power systems and maintenance areas
+- Cargo Bay: Storage areas with mysterious containers
+- Living Quarters: Crew quarters with personal effects
+- Air Locks: Entry/exit points to the station
+
+ALIEN ELEMENTS:
+- Organic growths on walls and equipment
+- Strange sounds and movements in shadows
+- Contaminated areas with unknown substances
+- Signs of struggle and missing crew
+- Mysterious technology and artifacts
 
 RESPONSE FORMAT:
 <speak>
@@ -61,10 +87,19 @@ module.exports = async (req, res) => {
     const llmProvider = process.env.LLM_PROVIDER || 'gemini';
     let llmResponse;
 
-    if (llmProvider === 'gemini') {
-      llmResponse = await callGemini(userInput);
-    } else {
-      llmResponse = await callOpenAI(userInput);
+    try {
+      if (llmProvider === 'gemini') {
+        llmResponse = await callGemini(userInput);
+      } else {
+        llmResponse = await callOpenAI(userInput);
+      }
+    } catch (error) {
+      console.error('LLM Error:', error.message);
+      return res.status(500).json({ 
+        error: 'LLM service error',
+        message: error.message,
+        response: '<speak><voice name="Joanna">Sorry, the AI service is currently unavailable. Please try again later.</voice></speak>'
+      });
     }
 
     // Log to Supabase
@@ -86,6 +121,10 @@ module.exports = async (req, res) => {
 };
 
 async function callGemini(userInput) {
+  if (!genAI) {
+    throw new Error('Gemini API key not configured');
+  }
+  
   const model = genAI.getGenerativeModel({ model: "gemini-pro" });
   
   const prompt = `${SYSTEM_PROMPT}\n\nPlayer says: "${userInput}"\n\nRespond with SSML:`;
@@ -96,6 +135,10 @@ async function callGemini(userInput) {
 }
 
 async function callOpenAI(userInput) {
+  if (!openai) {
+    throw new Error('OpenAI API key not configured');
+  }
+  
   const prompt = `${SYSTEM_PROMPT}\n\nPlayer says: "${userInput}"\n\nRespond with SSML:`;
   
   const completion = await openai.chat.completions.create({
@@ -109,6 +152,29 @@ async function callOpenAI(userInput) {
   });
 
   return completion.choices[0].message.content;
+}
+
+async function getModuleContent() {
+  try {
+    // For now, we'll reference the PDF in the prompt
+    // In the future, you could fetch and parse the PDF content here
+    return `Another Bug Hunt v1.2 - Sci-fi Horror TTRPG Module
+    
+    SETTING: Derelict space station with organic growths
+    TONE: Horror, survival, investigation
+    THEMES: Isolation, corruption, alien infestation
+    
+    The module contains detailed descriptions of:
+    - Space station layout and rooms
+    - Alien creatures and their behaviors
+    - Environmental hazards and atmosphere
+    - NPCs and their motivations
+    - Key locations and items
+    - Horror elements and jump scares`;
+  } catch (error) {
+    console.error('Error fetching module content:', error);
+    return 'Another Bug Hunt - Sci-fi Horror TTRPG Module';
+  }
 }
 
 async function logToSupabase(sessionId, userInput, llmResponse) {
