@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const VERCEL_ENDPOINT = 'https://bug-hunt-e3whom4h8-andrew-felixs-projects.vercel.app/api/ask';
+const VERCEL_ENDPOINT = 'https://bug-hunt-two.vercel.app/api/ask';
 
 exports.handler = async (event) => {
   console.log('Event:', JSON.stringify(event, null, 2));
@@ -29,11 +29,15 @@ exports.handler = async (event) => {
 };
 
 function handleLaunchRequest() {
-  const speechText = '<speak><voice name="Joanna">Mission online. Awaiting orders.</voice></speak>';
+  const speechText = `<speak>
+    <voice name="Joanna">Welcome to Another Bug Hunt. You are aboard the derelict space station known as the Black Star. The crew has been missing for weeks, and strange organic growths cover the walls and equipment. The air is thick with an otherworldly atmosphere, and something is definitely hunting in the shadows. Your mission is to investigate what happened to the crew and survive the horrors that await you in the depths of this forsaken station.</voice>
+    <voice name="Matthew">Mission parameters: Investigate crew disappearance, assess station condition, and eliminate any threats. Proceed with extreme caution.</voice>
+    <voice name="Joanna">You can explore by describing your actions. Try saying things like 'check the medbay', 'open the door', or 'search for survivors'.</voice>
+  </speak>`;
   
   return buildResponse(speechText, {
-    cardTitle: 'Bug Hunt',
-    cardContent: 'Mission online. Awaiting orders.'
+    cardTitle: 'Bug Hunt - Another Bug Hunt',
+    cardContent: 'Welcome to Another Bug Hunt. Investigate the derelict space station and survive the horrors within.'
   });
 }
 
