@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Hunt - Alexa TTRPG Voice Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            background: rgba(0, 255, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #00ff00;
+        }
+        .btn {
+            background: #ffd700;
+            color: #1e3c72;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #ffed4e;
+            transform: translateY(-2px);
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .voice-chars {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .voice-char {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .voice-name {
+            font-weight: bold;
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Bug Hunt</h1>
+        <h2>Alexa + LLM TTRPG Voice Assistant</h2>
+        
+        <div class="status">
+            ✅ <strong>Status:</strong> Landing Page Active
+        </div>
+        
+        <div class="section">
+            <h3>🎭 Voice Characters</h3>
+            <div class="voice-chars">
+                <div class="voice-char">
+                    <div class="voice-name">Joanna</div>
+                    <div>Main narration</div>
+                </div>
+                <div class="voice-char">
+                    <div class="voice-name">Matthew</div>
+                    <div>Military NPCs</div>
+                </div>
+                <div class="voice-char">
+                    <div class="voice-name">Ivy</div>
+                    <div>Creepy/alien voices</div>
+                </div>
+                <div class="voice-char">
+                    <div class="voice-name">Justin</div>
+                    <div>Computer/AI systems</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>🎮 Game Features</h3>
+            <ul>
+                <li>Sci-fi horror TTRPG experience</li>
+                <li>Voice-driven gameplay via Alexa</li>
+                <li>Dynamic LLM-generated responses</li>
+                <li>Multi-voice character system</li>
+                <li>Immersive space station setting</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h3>🔧 Technical Stack</h3>
+            <ul>
+                <li><strong>Frontend:</strong> Alexa Skill with SSML</li>
+                <li><strong>Backend:</strong> Node.js on Vercel</li>
+                <li><strong>AI:</strong> OpenAI GPT-4o</li>
+                <li><strong>Database:</strong> Supabase PostgreSQL</li>
+                <li><strong>Deployment:</strong> Vercel</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h3>📊 Project Info</h3>
+            <p><strong>Version:</strong> 1.0.0</p>
+            <p><strong>Status:</strong> Development</p>
+            <p><strong>LLM Support:</strong> OpenAI</p>
+            <p><strong>Database:</strong> Supabase</p>
+        </div>
+        
+        <div class="section">
+            <h3>🚀 Quick Links</h3>
+            <a href="https://github.com/andrewwfelix/bug_hunt" class="btn" target="_blank">GitHub Repository</a>
+            <a href="https://vercel.com" class="btn" target="_blank">Vercel Dashboard</a>
+        </div>
+    </div>
+</body>
+</html> 
