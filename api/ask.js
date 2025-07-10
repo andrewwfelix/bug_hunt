@@ -61,7 +61,7 @@ RESPONSE FORMAT:
 
 Remember: Keep it immersive, scary, and under 750 characters total.`;
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // Set CORS headers for Alexa
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

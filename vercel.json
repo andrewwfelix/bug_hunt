@@ -6,15 +6,7 @@
       "use": "@vercel/static"
     },
     {
-      "src": "api/hello.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/ask.js",
+      "src": "api/**/*.js",
       "use": "@vercel/node"
     }
   ],
@@ -24,8 +16,13 @@
       "dest": "/public/index.html"
     },
     {
-      "src": "/api/hello",
-      "dest": "/api/hello"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     }
-  ]
+  ],
+  "functions": {
+    "api/ask.js": {
+      "maxDuration": 30
+    }
+  }
 } 
