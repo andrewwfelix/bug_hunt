@@ -1,0 +1,25 @@
+{
+  "name": "bug-hunt-alexa-backend",
+  "version": "1.0.0",
+  "description": "Alexa + LLM TTRPG Voice Assistant Backend",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.2.1",
+    "openai": "^4.20.1",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.0",
+    "vercel": "^32.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 

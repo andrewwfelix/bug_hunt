@@ -1,0 +1,86 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "bug hunt",
+      "intents": [
+        {
+          "name": "CatchAllIntent",
+          "slots": [
+            {
+              "name": "userInput",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "{userInput}",
+            "I want to {userInput}",
+            "Let me {userInput}",
+            "Can I {userInput}",
+            "Try to {userInput}",
+            "I need to {userInput}"
+          ]
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        }
+      ],
+      "types": []
+    }
+  },
+  "apis": {
+    "custom": {
+      "endpoint": {
+        "uri": "https://your-vercel-project.vercel.app/api/ask"
+      }
+    }
+  },
+  "manifest": {
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "https://your-vercel-project.vercel.app/api/ask"
+        }
+      }
+    },
+    "manifestVersion": "1.0",
+    "publishingInformation": {
+      "locales": {
+        "en-US": {
+          "name": "Bug Hunt",
+          "summary": "A voice-driven TTRPG experience",
+          "description": "Experience Another Bug Hunt, a sci-fi horror TTRPG module through voice interaction. Navigate a derelict space station and survive the horrors within.",
+          "keywords": [
+            "game",
+            "rpg",
+            "ttrpg",
+            "horror",
+            "sci-fi",
+            "voice"
+          ],
+          "category": "GAMES",
+          "distributionCountries": [
+            "US"
+          ]
+        }
+      },
+      "isAvailableWorldwide": false,
+      "distributionCountries": [
+        "US"
+      ],
+      "testingInstructions": "Test with various voice commands like 'open the door', 'check the medbay', 'search for survivors'"
+    }
+  }
+} 
