@@ -2,7 +2,23 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/ask.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/test.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/health.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/debug.js",
       "use": "@vercel/node"
     }
   ],
@@ -12,12 +28,24 @@
       "dest": "/api/index"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "src": "/api/ask",
+      "dest": "/api/ask"
     },
     {
-      "src": "/(.*)",
-      "dest": "/api/index"
+      "src": "/api/test",
+      "dest": "/api/test"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/api/health"
+    },
+    {
+      "src": "/api/debug",
+      "dest": "/api/debug"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     }
   ],
   "functions": {
@@ -25,6 +53,15 @@
       "maxDuration": 30
     },
     "api/ask.js": {
+      "maxDuration": 30
+    },
+    "api/test.js": {
+      "maxDuration": 30
+    },
+    "api/health.js": {
+      "maxDuration": 30
+    },
+    "api/debug.js": {
       "maxDuration": 30
     }
   }
