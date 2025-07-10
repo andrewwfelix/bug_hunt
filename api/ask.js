@@ -83,8 +83,8 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'userInput is required' });
     }
 
-    // Choose LLM provider (default to Gemini, fallback to OpenAI)
-    const llmProvider = process.env.LLM_PROVIDER || 'gemini';
+    // Choose LLM provider (default to OpenAI, fallback to Gemini)
+    const llmProvider = process.env.LLM_PROVIDER || 'openai';
     let llmResponse;
 
     try {
