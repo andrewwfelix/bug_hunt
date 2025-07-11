@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/*.js": {
-      "runtime": "nodejs@18.x"
+      "runtime": "nodejs18.x"
     }
   },
   "routes": [
@@ -10,4 +10,4 @@
       "dest": "/api/$1.js"
     }
   ]
-} 
+}
