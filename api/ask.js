@@ -94,7 +94,7 @@ module.exports = async function handler(req, res) {
       response: {
         outputSpeech: {
           type: "SSML",
-          ssml: "<speak><voice name=\"Joanna\">Welcome Scientist. You are aboard the derelict space station. The crew has been missing for weeks. Strange organic growths cover the walls. Something is hunting in the shadows. What would you like to do?</voice></speak>"
+          ssml: "<speak><voice name=\"Joanna\">Welcome Scientist.</voice></speak>"
         },
         shouldEndSession: false,
       },
@@ -104,17 +104,77 @@ module.exports = async function handler(req, res) {
   // Handle IntentRequest (user spoke a command)
   if (alexaRequest.request?.type === 'IntentRequest') {
     console.log("IntentRequest detected");
+    console.log("Intent name:", alexaRequest.request.intent?.name);
     
-    // Extract user input from the intent
-    let userInput = '';
-    if (alexaRequest.request.intent?.slots?.userInput?.value) {
-      userInput = alexaRequest.request.intent.slots.userInput.value;
-    } else if (alexaRequest.request.intent?.slots?.query?.value) {
-      userInput = alexaRequest.request.intent.slots.query.value;
+    const intentName = alexaRequest.request.intent?.name;
+    const userInput = alexaRequest.request.intent?.slots?.speech?.value;
+
+    console.log('Extracted userInput from speech slot:', userInput);
+
+    if (intentName === 'WardenIntent' && userInput) {
+      try {
+        // Check if OpenAI is configured
+        if (!process.env.OPENAI_API_KEY) {
+          console.error('OpenAI API key not configured');
+          return res.status(200).json({
+            version: "1.0",
+            response: {
+              outputSpeech: {
+                type: "SSML",
+                ssml: "<speak><voice name=\"Joanna\">Sorry, the AI service is not configured. Please check your environment variables.</voice></speak>"
+              },
+              shouldEndSession: true,
+            },
+          });
+        }
+
+        // Call OpenAI to generate response
+        let llmResponse;
+        try {
+          llmResponse = await callOpenAI(userInput);
+          console.log('LLM Response:', llmResponse);
+        } catch (error) {
+          console.error('LLM Error:', error.message);
+          return res.status(200).json({
+            version: "1.0",
+            response: {
+              outputSpeech: {
+                type: "SSML",
+                ssml: "<speak><voice name=\"Joanna\">Sorry, the AI service is currently unavailable. Please try again later.</voice></speak>"
+              },
+              shouldEndSession: true,
+            },
+          });
+        }
+
+        // Return response in proper Alexa format
+        return res.status(200).json({
+          version: "1.0",
+          response: {
+            outputSpeech: {
+              type: "SSML",
+              ssml: llmResponse
+            },
+            shouldEndSession: false,
+          },
+        });
+
+      } catch (error) {
+        console.error('Error in WardenIntent:', error);
+        return res.status(200).json({
+          version: "1.0",
+          response: {
+            outputSpeech: {
+              type: "SSML",
+              ssml: "<speak><voice name=\"Joanna\">System error. Please try again.</voice></speak>"
+            },
+            shouldEndSession: true,
+          },
+        });
+      }
     }
 
-    console.log('Extracted userInput:', userInput);
-
+    // Handle other intents or missing speech
     if (!userInput) {
       return res.status(200).json({
         version: "1.0",
@@ -128,66 +188,17 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    try {
-      // Check if OpenAI is configured
-      if (!process.env.OPENAI_API_KEY) {
-        console.error('OpenAI API key not configured');
-        return res.status(200).json({
-          version: "1.0",
-          response: {
-            outputSpeech: {
-              type: "SSML",
-              ssml: "<speak><voice name=\"Joanna\">Sorry, the AI service is not configured. Please check your environment variables.</voice></speak>"
-            },
-            shouldEndSession: true,
-          },
-        });
-      }
-
-      // Call OpenAI to generate response
-      let llmResponse;
-      try {
-        llmResponse = await callOpenAI(userInput);
-        console.log('LLM Response:', llmResponse);
-      } catch (error) {
-        console.error('LLM Error:', error.message);
-        return res.status(200).json({
-          version: "1.0",
-          response: {
-            outputSpeech: {
-              type: "SSML",
-              ssml: "<speak><voice name=\"Joanna\">Sorry, the AI service is currently unavailable. Please try again later.</voice></speak>"
-            },
-            shouldEndSession: true,
-          },
-        });
-      }
-
-      // Return response in proper Alexa format
-      return res.status(200).json({
-        version: "1.0",
-        response: {
-          outputSpeech: {
-            type: "SSML",
-            ssml: llmResponse
-          },
-          shouldEndSession: false,
+    // Handle unknown intents
+    return res.status(200).json({
+      version: "1.0",
+      response: {
+        outputSpeech: {
+          type: "SSML",
+          ssml: "<speak><voice name=\"Joanna\">I'm not sure how to help with that. Please say 'Warden' followed by your command.</voice></speak>"
         },
-      });
-
-    } catch (error) {
-      console.error('Error in /api/ask:', error);
-      return res.status(200).json({
-        version: "1.0",
-        response: {
-          outputSpeech: {
-            type: "SSML",
-            ssml: "<speak><voice name=\"Joanna\">System error. Please try again.</voice></speak>"
-          },
-          shouldEndSession: true,
-        },
-      });
-    }
+        shouldEndSession: false,
+      },
+    });
   }
 
   // Fallback for unknown or unsupported request types
@@ -209,6 +220,11 @@ module.exports = async function handler(req, res) {
 async function callOpenAI(userInput) {
   if (!openai) {
     throw new Error('OpenAI API key not configured');
+  }
+  
+  // Special case: Warden counting to three
+  if (userInput.toLowerCase().includes('count') || userInput.toLowerCase().includes('warden count')) {
+    return "<speak><voice name=\"Joanna\">One... Two... Three. Count complete.</voice></speak>";
   }
   
   // Try to fetch module content from blob storage
