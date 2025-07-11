@@ -51,7 +51,7 @@
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "https://bug-hunt-git-main-andrew-felixs-projects.vercel.app/api/ask"
+          "uri": "https://bug-hunt-two.vercel.app/api/ask"
         }
       }
     },

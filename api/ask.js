@@ -74,83 +74,134 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ message: 'Only POST allowed' });
   }
 
-  // Handle malformed JSON in request body
-  let requestBody;
-  try {
-    requestBody = req.body;
-  } catch (error) {
-    console.error('Error parsing request body:', error);
-    return res.status(400).json({ 
-      error: 'Invalid JSON in request body',
-      message: 'The request body contains malformed JSON'
+  // Debug: Log the incoming request
+  console.log('=== Alexa Request Debug ===');
+  console.log('Headers:', req.headers);
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+  console.log('========================');
+
+  const alexaRequest = req.body;
+
+  // Handle LaunchRequest (skill opened)
+  if (alexaRequest.request?.type === 'LaunchRequest') {
+    console.log("LaunchRequest detected - returning welcome message");
+    
+    return res.status(200).json({
+      version: "1.0",
+      response: {
+        outputSpeech: {
+          type: "SSML",
+          ssml: "<speak><voice name=\"Joanna\">Welcome Scientist. You are aboard the derelict space station. The crew has been missing for weeks. Strange organic growths cover the walls. Something is hunting in the shadows. What would you like to do?</voice></speak>"
+        },
+        shouldEndSession: false,
+      },
     });
   }
 
-  // Validate request body
-  if (!requestBody || typeof requestBody !== 'object') {
-    return res.status(400).json({ 
-      error: 'Invalid request body',
-      message: 'Request body must be a JSON object'
-    });
-  }
+  // Handle IntentRequest (user spoke a command)
+  if (alexaRequest.request?.type === 'IntentRequest') {
+    console.log("IntentRequest detected");
+    
+    // Extract user input from the intent
+    let userInput = '';
+    if (alexaRequest.request.intent?.slots?.userInput?.value) {
+      userInput = alexaRequest.request.intent.slots.userInput.value;
+    } else if (alexaRequest.request.intent?.slots?.query?.value) {
+      userInput = alexaRequest.request.intent.slots.query.value;
+    }
 
-  const { userInput, sessionId } = requestBody;
+    console.log('Extracted userInput:', userInput);
 
-  if (!userInput) {
-    return res.status(400).json({ 
-      error: 'userInput is required',
-      message: 'Please provide a userInput field in the request body'
-    });
-  }
-
-  if (typeof userInput !== 'string') {
-    return res.status(400).json({ 
-      error: 'userInput must be a string',
-      message: 'The userInput field must be a string value'
-    });
-  }
-
-  try {
-    // Check if OpenAI is configured
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ 
-        error: 'OpenAI API key not configured',
-        message: 'Please set OPENAI_API_KEY environment variable',
-        response: '<speak><voice name="Joanna">Sorry, the AI service is not configured. Please check your environment variables.</voice></speak>'
+    if (!userInput) {
+      return res.status(200).json({
+        version: "1.0",
+        response: {
+          outputSpeech: {
+            type: "SSML",
+            ssml: "<speak><voice name=\"Joanna\">I didn't catch that. Could you please repeat your command?</voice></speak>"
+          },
+          shouldEndSession: false,
+        },
       });
     }
 
-    let llmResponse;
     try {
-      llmResponse = await callOpenAI(userInput);
+      // Check if OpenAI is configured
+      if (!process.env.OPENAI_API_KEY) {
+        console.error('OpenAI API key not configured');
+        return res.status(200).json({
+          version: "1.0",
+          response: {
+            outputSpeech: {
+              type: "SSML",
+              ssml: "<speak><voice name=\"Joanna\">Sorry, the AI service is not configured. Please check your environment variables.</voice></speak>"
+            },
+            shouldEndSession: true,
+          },
+        });
+      }
+
+      // Call OpenAI to generate response
+      let llmResponse;
+      try {
+        llmResponse = await callOpenAI(userInput);
+        console.log('LLM Response:', llmResponse);
+      } catch (error) {
+        console.error('LLM Error:', error.message);
+        return res.status(200).json({
+          version: "1.0",
+          response: {
+            outputSpeech: {
+              type: "SSML",
+              ssml: "<speak><voice name=\"Joanna\">Sorry, the AI service is currently unavailable. Please try again later.</voice></speak>"
+            },
+            shouldEndSession: true,
+          },
+        });
+      }
+
+      // Return response in proper Alexa format
+      return res.status(200).json({
+        version: "1.0",
+        response: {
+          outputSpeech: {
+            type: "SSML",
+            ssml: llmResponse
+          },
+          shouldEndSession: false,
+        },
+      });
+
     } catch (error) {
-      console.error('LLM Error:', error.message);
-      return res.status(500).json({ 
-        error: 'LLM service error',
-        message: error.message,
-        response: '<speak><voice name="Joanna">Sorry, the AI service is currently unavailable. Please try again later.</voice></speak>'
+      console.error('Error in /api/ask:', error);
+      return res.status(200).json({
+        version: "1.0",
+        response: {
+          outputSpeech: {
+            type: "SSML",
+            ssml: "<speak><voice name=\"Joanna\">System error. Please try again.</voice></speak>"
+          },
+          shouldEndSession: true,
+        },
       });
     }
-
-    // Log to Supabase (disabled - no database configured)
-    // await logToSupabase(sessionId, userInput, llmResponse);
-
-    // Return response in Alexa-compatible format
-    res.status(200).json({
-      response: llmResponse,
-      sessionId: sessionId
-    });
-
-  } catch (error) {
-    console.error('Error in /api/ask:', error);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      response: '<speak><voice name="Joanna">System error. Please try again.</voice></speak>'
-    });
   }
+
+  // Fallback for unknown or unsupported request types
+  console.log("Unsupported request type or missing data");
+  return res.status(200).json({
+    version: "1.0",
+    response: {
+      outputSpeech: {
+        type: "SSML",
+        ssml: "<speak><voice name=\"Joanna\">Sorry, I didn't understand that. Please try opening the skill again.</voice></speak>"
+      },
+      shouldEndSession: true,
+    },
+  });
 };
 
 
