@@ -3,102 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bug Hunt - Alexa TTRPG Voice Assistant</title>
+    <title>Bug Hunt - API Tester</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1000px;
-            margin: 0 auto;
+            font-family: 'Courier New', monospace;
+            background: #000000;
+            color: #00ff00;
+            margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: white;
             min-height: 100vh;
         }
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            margin: 0 auto;
         }
         h1 {
-            color: #ffd700;
             text-align: center;
             margin-bottom: 30px;
-            font-size: 2.5em;
-        }
-        .status {
-            background: rgba(0, 255, 0, 0.2);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #00ff00;
         }
         .btn {
-            background: #ffd700;
-            color: #1e3c72;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
+            background: #000000;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            padding: 15px 30px;
+            font-size: 16px;
             cursor: pointer;
-            font-weight: bold;
-            margin: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 20px auto;
+            display: block;
             transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
         }
         .btn:hover {
-            background: #ffed4e;
-            transform: translateY(-2px);
-        }
-        .btn:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .section {
-            margin: 30px 0;
-        }
-        .voice-chars {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .voice-char {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .voice-name {
-            font-weight: bold;
-            color: #ffd700;
-        }
-        .test-section {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        .test-input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            font-family: inherit;
+            background: #00ff00;
+            color: #000000;
         }
         .response-box {
-            background: rgba(0, 0, 0, 0.3);
+            background: #000000;
+            border: 1px solid #00ff00;
             padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
+            margin: 20px 0;
             white-space: pre-wrap;
             font-family: 'Courier New', monospace;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             display: none;
         }
@@ -106,7 +52,7 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid #ffd700;
+            border: 2px solid #00ff00;
             border-radius: 50%;
             border-top-color: transparent;
             animation: spin 1s ease-in-out infinite;
@@ -115,340 +61,80 @@
             to { transform: rotate(360deg); }
         }
         .error {
-            background: rgba(255, 0, 0, 0.2);
-            border-left: 4px solid #ff0000;
+            border-color: #ff0000;
+            color: #ff0000;
         }
         .success {
-            background: rgba(0, 255, 0, 0.2);
-            border-left: 4px solid #00ff00;
-        }
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .version-badge {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 215, 0, 0.9);
-            color: #8B0000;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        @media (max-width: 768px) {
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
-            .version-badge {
-                position: static;
-                margin: 10px 0;
-                text-align: center;
-            }
+            border-color: #00ff00;
+            color: #00ff00;
         }
     </style>
 </head>
 <body>
-    <div class="version-badge" id="versionBadge">
-        v<span id="versionBadgeText">1.0.0</span>
-    </div>
     <div class="container">
-        <h1>🎮 Bug Hunt</h1>
-        <h2>Alexa + LLM TTRPG Voice Assistant</h2>
+        <h1>🐛 Bug Hunt API Tester</h1>
         
-        <div class="status">
-            ✅ <strong>Status:</strong> Landing Page Active
-            <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
-                <strong>Version:</strong> <span id="versionDisplay">1.0.0</span> | 
-                <strong>Build:</strong> <span id="buildTimestamp">Loading...</span> | 
-                <strong>Build #:</strong> <span id="buildNumber">1</span>
-            </div>
-        </div>
+        <button class="btn" onclick="testAllRoutes()">🧪 Test All Routes</button>
         
-        <!-- API Testing Section -->
-        <div class="section">
-            <h3>🧪 API Testing</h3>
-            <div class="test-section">
-                <h4>Test API Endpoints</h4>
-                <input type="text" id="testInput" class="test-input" placeholder="Enter a command (e.g., 'open the door')" value="check the medbay">
-                <button class="btn" onclick="testAPI()">Test API</button>
-                <button class="btn" onclick="testHealth()">Health Check</button>
-                <button class="btn" onclick="testEnvironment()">Environment Check</button>
-                <div id="apiResponse" class="response-box"></div>
-            </div>
-        </div>
-        
-        <!-- Quick Test Buttons -->
-        <div class="section">
-            <h3>🎮 Quick Tests</h3>
-            <div class="test-section">
-                <button class="btn" onclick="quickTest('open the door')">🚪 Open Door</button>
-                <button class="btn" onclick="quickTest('check the medbay')">🏥 Check Medbay</button>
-                <button class="btn" onclick="quickTest('search for survivors')">🔍 Search Survivors</button>
-                <button class="btn" onclick="quickTest('look around')">👀 Look Around</button>
-                <button class="btn" onclick="quickTest('where is the bug hunt pdf?')">📄 Find PDF</button>
-                <button class="btn" onclick="quickTest('activate security system')">🔒 Security System</button>
-            </div>
-        </div>
-        
-        <!-- Environment Status -->
-        <div class="section">
-            <h3>🔧 System Status</h3>
-            <div class="grid-2">
-                <div class="test-section">
-                    <h4>API Endpoints</h4>
-                    <div id="endpointStatus">
-                        <div>🔄 Checking...</div>
-                    </div>
-                </div>
-                <div class="test-section">
-                    <h4>Environment</h4>
-                    <div id="envStatus">
-                        <div>🔄 Checking...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="section">
-            <h3>🎭 Voice Characters</h3>
-            <div class="voice-chars">
-                <div class="voice-char">
-                    <div class="voice-name">Joanna</div>
-                    <div>Main narration</div>
-                </div>
-                <div class="voice-char">
-                    <div class="voice-name">Matthew</div>
-                    <div>Military NPCs</div>
-                </div>
-                <div class="voice-char">
-                    <div class="voice-name">Ivy</div>
-                    <div>Creepy/alien voices</div>
-                </div>
-                <div class="voice-char">
-                    <div class="voice-name">Justin</div>
-                    <div>Computer/AI systems</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="section">
-            <h3>🎮 Game Features</h3>
-            <ul>
-                <li>Sci-fi horror TTRPG experience</li>
-                <li>Voice-driven gameplay via Alexa</li>
-                <li>Dynamic LLM-generated responses</li>
-                <li>Multi-voice character system</li>
-                <li>Immersive space station setting</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h3>🔧 Technical Stack</h3>
-            <ul>
-                <li><strong>Frontend:</strong> Alexa Skill with SSML</li>
-                <li><strong>Backend:</strong> Node.js on Vercel</li>
-                <li><strong>AI:</strong> OpenAI GPT-4o</li>
-                <li><strong>Database:</strong> Supabase PostgreSQL</li>
-                <li><strong>Storage:</strong> Vercel Blob Storage</li>
-                <li><strong>Deployment:</strong> Vercel</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h3>📊 Project Info</h3>
-            <p><strong>Version:</strong> 1.0.0</p>
-            <p><strong>Status:</strong> Development</p>
-            <p><strong>LLM Support:</strong> OpenAI</p>
-            <p><strong>Database:</strong> Supabase</p>
-        </div>
-        
-        <div class="section">
-            <h3>🚀 Quick Links</h3>
-            <a href="https://github.com/andrewwfelix/bug_hunt" class="btn" target="_blank">GitHub Repository</a>
-            <a href="https://vercel.com" class="btn" target="_blank">Vercel Dashboard</a>
-        </div>
+        <div id="responseBox" class="response-box"></div>
     </div>
 
     <script>
-        // Test API endpoint
-        async function testAPI() {
-            const input = document.getElementById('testInput').value;
-            const responseBox = document.getElementById('apiResponse');
-            
-            if (!input.trim()) {
-                showResponse('Please enter a command to test', 'error');
-                return;
-            }
-            
-            showResponse('Testing...', 'loading');
-            
-            try {
-                const response = await fetch('/api/ask', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userInput: input,
-                        sessionId: 'test-session-' + Date.now()
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showResponse(`✅ Success (${response.status})\n\nResponse:\n${data.response}\n\nSession ID: ${data.sessionId}`, 'success');
-                } else {
-                    showResponse(`❌ Error (${response.status})\n\nError: ${data.error}\nMessage: ${data.message}`, 'error');
-                }
-            } catch (error) {
-                showResponse(`❌ Network Error\n\n${error.message}`, 'error');
-            }
-        }
-        
-        // Quick test function
-        function quickTest(command) {
-            document.getElementById('testInput').value = command;
-            testAPI();
-        }
-        
-        // Test health endpoint
-        async function testHealth() {
-            const responseBox = document.getElementById('apiResponse');
-            showResponse('Checking health...', 'loading');
-            
-            try {
-                const response = await fetch('/health');
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showResponse(`✅ Health Check (${response.status})\n\n${JSON.stringify(data, null, 2)}`, 'success');
-                } else {
-                    showResponse(`❌ Health Check Failed (${response.status})`, 'error');
-                }
-            } catch (error) {
-                showResponse(`❌ Health Check Error\n\n${error.message}`, 'error');
-            }
-        }
-        
-        // Test environment endpoint
-        async function testEnvironment() {
-            const responseBox = document.getElementById('apiResponse');
-            showResponse('Checking environment...', 'loading');
-            
-            try {
-                const response = await fetch('/api/debug');
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showResponse(`✅ Environment Check (${response.status})\n\n${JSON.stringify(data, null, 2)}`, 'success');
-                } else {
-                    showResponse(`❌ Environment Check Failed (${response.status})`, 'error');
-                }
-            } catch (error) {
-                showResponse(`❌ Environment Check Error\n\n${error.message}`, 'error');
-            }
-        }
-        
-        // Show response in the response box
-        function showResponse(message, type = '') {
-            const responseBox = document.getElementById('apiResponse');
+        async function testAllRoutes() {
+            const responseBox = document.getElementById('responseBox');
             responseBox.style.display = 'block';
-            responseBox.className = 'response-box ' + type;
-            responseBox.textContent = message;
-        }
-        
-        // Check endpoint status on page load
-        async function checkEndpoints() {
-            const endpointStatus = document.getElementById('endpointStatus');
-            const envStatus = document.getElementById('envStatus');
+            responseBox.className = 'response-box';
+            responseBox.textContent = 'Testing all routes...\n\n';
             
-            // Check health endpoint
-            try {
-                const healthResponse = await fetch('/health');
-                const healthData = await healthResponse.json();
-                endpointStatus.innerHTML = `
-                    <div class="success">✅ API Server: Online</div>
-                    <div>Status: ${healthData.status}</div>
-                    <div>Version: ${healthData.version}</div>
-                `;
-            } catch (error) {
-                endpointStatus.innerHTML = `
-                    <div class="error">❌ API Server: Offline</div>
-                    <div>Error: ${error.message}</div>
-                `;
-            }
+            const routes = [
+                { name: 'Health Check', url: '/health', method: 'GET' },
+                { name: 'Environment Debug', url: '/api/debug', method: 'GET' },
+                { name: 'Version', url: '/api/version', method: 'GET' },
+                { name: 'Hello', url: '/api/hello', method: 'GET' },
+                { name: 'Simple Test', url: '/api/simple', method: 'GET' },
+                { name: 'Test Simple', url: '/api/test-simple', method: 'GET' },
+                { name: 'Test', url: '/api/test', method: 'GET' },
+                { name: 'Ask API (POST)', url: '/api/ask', method: 'POST', body: { userInput: 'test command', sessionId: 'test-session' } }
+            ];
             
-            // Check environment
-            try {
-                const envResponse = await fetch('/api/debug');
-                const envData = await envResponse.json();
-                envStatus.innerHTML = `
-                    <div class="success">✅ Environment: Online</div>
-                    <div>OpenAI: ${envData.environment.env_vars.has_openai ? '✅' : '❌'}</div>
-                    <div>Supabase: ${envData.environment.env_vars.has_supabase ? '✅' : '❌'}</div>
-                    <div>LLM Provider: ${envData.environment.env_vars.llm_provider}</div>
-                `;
-            } catch (error) {
-                envStatus.innerHTML = `
-                    <div class="error">❌ Environment: Error</div>
-                    <div>Error: ${error.message}</div>
-                `;
-            }
-        }
-        
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            checkEndpoints();
-            updateVersionDisplay();
+            let results = '';
             
-            // Allow Enter key to test API
-            document.getElementById('testInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    testAPI();
-                }
-            });
-        });
-        
-        // Update version display
-        function updateVersionDisplay() {
-            const versionDisplay = document.getElementById('versionDisplay');
-            const buildTimestamp = document.getElementById('buildTimestamp');
-            const versionBadgeText = document.getElementById('versionBadgeText');
-            const buildNumber = document.getElementById('buildNumber');
-            
-            // Set current version
-            const currentVersion = '1.0.2';
-            versionDisplay.textContent = currentVersion;
-            versionBadgeText.textContent = currentVersion;
-            
-            // Set build timestamp
-            const now = new Date();
-            buildTimestamp.textContent = now.toLocaleString();
-            
-            // Set build number (increments each time page loads)
-            const storedBuildNumber = localStorage.getItem('bugHuntBuildNumber') || 0;
-            const newBuildNumber = parseInt(storedBuildNumber) + 1;
-            localStorage.setItem('bugHuntBuildNumber', newBuildNumber);
-            buildNumber.textContent = newBuildNumber;
-            
-            // Try to fetch version from server
-            fetch('/health')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.version) {
-                        versionDisplay.textContent = data.version;
-                        versionBadgeText.textContent = data.version;
+            for (const route of routes) {
+                results += `\n🔍 Testing: ${route.name}\n`;
+                results += `URL: ${route.url}\n`;
+                results += `Method: ${route.method}\n`;
+                
+                try {
+                    const options = {
+                        method: route.method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    };
+                    
+                    if (route.body) {
+                        options.body = JSON.stringify(route.body);
                     }
-                })
-                .catch(error => {
-                    console.log('Could not fetch server version:', error);
-                });
+                    
+                    const response = await fetch(route.url, options);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        results += `✅ Status: ${response.status}\n`;
+                        results += `Response: ${JSON.stringify(data, null, 2)}\n`;
+                    } else {
+                        results += `❌ Status: ${response.status}\n`;
+                        results += `Error: ${JSON.stringify(data, null, 2)}\n`;
+                    }
+                } catch (error) {
+                    results += `❌ Network Error: ${error.message}\n`;
+                }
+                
+                results += `\n${'─'.repeat(50)}\n`;
+            }
+            
+            responseBox.textContent = results;
+            responseBox.className = 'response-box success';
         }
     </script>
 </body>

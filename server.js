@@ -13,6 +13,12 @@ app.use(express.static('public'));
 const askHandler = require('./api/ask');
 const indexHandler = require('./api/index');
 const debugHandler = require('./api/debug');
+const envHandler = require('./api/env');
+const healthHandler = require('./api/health');
+const versionHandler = require('./api/version');
+const simpleTestHandler = require('./api/simple-test');
+const testSimpleHandler = require('./api/test-simple');
+const helloHandler = require('./api/hello');
 
 // API Routes
 app.post('/api/ask', (req, res) => {
@@ -29,6 +35,35 @@ app.get('/api', (req, res) => {
 
 app.get('/api/debug', (req, res) => {
   debugHandler(req, res);
+});
+
+app.get('/api/test', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.status(200).json(4.0);
+});
+
+app.get('/api/env', (req, res) => {
+  envHandler(req, res);
+});
+
+app.get('/api/health', (req, res) => {
+  healthHandler(req, res);
+});
+
+app.get('/api/version', (req, res) => {
+  versionHandler(req, res);
+});
+
+app.get('/api/simple-test', (req, res) => {
+  simpleTestHandler(req, res);
+});
+
+app.get('/api/test-simple', (req, res) => {
+  testSimpleHandler(req, res);
+});
+
+app.get('/api/hello', (req, res) => {
+  helloHandler(req, res);
 });
 
 // Health check endpoint
@@ -71,6 +106,12 @@ app.listen(PORT, () => {
   console.log('  GET  /              - Homepage with testing interface');
   console.log('  GET  /health        - Health check');
   console.log('  GET  /api/debug     - Environment debug');
+  console.log('  GET  /api/env       - Environment variables');
+  console.log('  GET  /api/version   - Version info');
+  console.log('  GET  /api/simple-test - Simple test endpoint');
+  console.log('  GET  /api/test-simple - Another test endpoint');
+  console.log('  GET  /api/hello     - Hello endpoint');
+  console.log('  GET  /api/test      - Test endpoint (returns 4.0)');
   console.log('  POST /api/ask       - Main API endpoint');
   console.log('');
   console.log('🎭 Voice Characters: Joanna, Matthew, Ivy, Justin');

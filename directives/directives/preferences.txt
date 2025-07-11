@@ -1,0 +1,8 @@
+TERMINAL PREFERENCES:
+- ALWAYS use cmd instead of PowerShell
+- Run commands in foreground (not background)
+- Prefer simple command line operations
+- Always kill processes before starting dev server
+- Always provide test command to run in foreground
+- Server is already running on port 3000
+- Use cmd.exe for all terminal operations 

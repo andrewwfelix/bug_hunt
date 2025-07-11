@@ -10,17 +10,17 @@
     "vercel-dev": "vercel dev"
   },
   "dependencies": {
-    "openai": "^4.20.1",
     "axios": "^1.6.0",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "openai": "^4.20.1"
   },
   "devDependencies": {
     "@types/node": "^20.8.0",
     "typescript": "^5.2.0",
-    "vercel": "^32.5.0"
+    "vercel": "^44.4.0"
   },
   "engines": {
     "node": ">=18.0.0"
   }
-} 
+}
