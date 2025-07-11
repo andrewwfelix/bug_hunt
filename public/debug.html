@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Hunt - Environment Debug</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000000;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+        }
+        .status {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .env-section {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .env-var {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+        }
+        .env-key {
+            font-weight: bold;
+            color: #00ff00;
+        }
+        .env-value {
+            color: #00aa00;
+            word-break: break-all;
+        }
+        .btn {
+            background: #000000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #00ff00;
+            color: #000000;
+        }
+        .response-box {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+        .loading {
+            color: #00ff00;
+        }
+        .error {
+            color: #ff0000;
+        }
+        .success {
+            color: #00ff00;
+        }
+        .version-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #000000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="version-badge">
+        v<span id="versionBadgeText">1.0.4</span>
+    </div>
+    
+    <div class="container">
+        <h1>🐛 BUG HUNT - ENVIRONMENT DEBUG</h1>
+        
+        <div class="status">
+            <strong>Status:</strong> Environment Variables Monitor
+            <br>
+            <strong>Version:</strong> <span id="versionDisplay">1.0.4</span>
+            <br>
+            <strong>Build:</strong> <span id="buildTimestamp">Loading...</span>
+            <br>
+            <strong>Build #:</strong> <span id="buildNumber">1</span>
+        </div>
+        
+        <div class="env-section">
+            <h3>🔧 API Tests</h3>
+            <button class="btn" onclick="testHealth()">Health Check</button>
+            <button class="btn" onclick="testEnvVars()">Show All Env Vars</button>
+            <button class="btn" onclick="testSimple()">Simple Test</button>
+            <button class="btn" onclick="testAPI()">Test OpenAI API</button>
+            <div id="apiResponse" class="response-box"></div>
+        </div>
+        
+        <div class="env-section">
+            <h3>🌍 Environment Variables</h3>
+            <div id="envVarsDisplay">
+                <div class="loading">Loading environment variables...</div>
+            </div>
+        </div>
+        
+        <div class="env-section">
+            <h3>📊 System Info</h3>
+            <div id="systemInfo">
+                <div class="loading">Loading system information...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update version display
+        function updateVersionDisplay() {
+            const versionDisplay = document.getElementById('versionDisplay');
+            const buildTimestamp = document.getElementById('buildTimestamp');
+            const versionBadgeText = document.getElementById('versionBadgeText');
+            const buildNumber = document.getElementById('buildNumber');
+            
+            const currentVersion = '1.0.4';
+            versionDisplay.textContent = currentVersion;
+            versionBadgeText.textContent = currentVersion;
+            
+            const now = new Date();
+            buildTimestamp.textContent = now.toLocaleString();
+            
+            const storedBuildNumber = localStorage.getItem('bugHuntBuildNumber') || 0;
+            const newBuildNumber = parseInt(storedBuildNumber) + 1;
+            localStorage.setItem('bugHuntBuildNumber', newBuildNumber);
+            buildNumber.textContent = newBuildNumber;
+        }
+        
+        // Test health endpoint
+        async function testHealth() {
+            showResponse('Testing health endpoint...', 'loading');
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                if (response.ok) {
+                    showResponse(`✅ Health Check Success\n\n${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResponse(`❌ Health Check Failed (${response.status})`, 'error');
+                }
+            } catch (error) {
+                showResponse(`❌ Health Check Error\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // Test environment variables
+        async function testEnvVars() {
+            showResponse('Fetching environment variables...', 'loading');
+            try {
+                const response = await fetch('/api/env');
+                const data = await response.json();
+                if (response.ok) {
+                    showResponse(`✅ Environment Variables\n\n${JSON.stringify(data, null, 2)}`, 'success');
+                    displayEnvVars(data.vars);
+                } else {
+                    showResponse(`❌ Environment Variables Failed (${response.status})`, 'error');
+                }
+            } catch (error) {
+                showResponse(`❌ Environment Variables Error\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // Test simple endpoint
+        async function testSimple() {
+            showResponse('Testing simple endpoint...', 'loading');
+            try {
+                const response = await fetch('/api/simple-test');
+                const data = await response.json();
+                if (response.ok) {
+                    showResponse(`✅ Simple Test Success\n\n${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResponse(`❌ Simple Test Failed (${response.status})`, 'error');
+                }
+            } catch (error) {
+                showResponse(`❌ Simple Test Error\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // Test OpenAI API
+        async function testAPI() {
+            showResponse('Testing OpenAI API...', 'loading');
+            try {
+                const response = await fetch('/api/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userInput: 'test',
+                        sessionId: 'test-session-' + Date.now()
+                    })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showResponse(`✅ API Test Success\n\n${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResponse(`❌ API Test Failed (${response.status})\n\n${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResponse(`❌ API Test Error\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // Display environment variables
+        function displayEnvVars(envVars) {
+            const envDisplay = document.getElementById('envVarsDisplay');
+            let html = '<h4>Environment Variables:</h4>';
+            
+            for (const [key, value] of Object.entries(envVars)) {
+                html += `
+                    <div class="env-var">
+                        <span class="env-key">${key}</span>
+                        <span class="env-value">${value || 'undefined'}</span>
+                    </div>
+                `;
+            }
+            
+            envDisplay.innerHTML = html;
+        }
+        
+        // Show response
+        function showResponse(message, type = '') {
+            const responseBox = document.getElementById('apiResponse');
+            responseBox.style.display = 'block';
+            responseBox.className = 'response-box ' + type;
+            responseBox.textContent = message;
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateVersionDisplay();
+            testEnvVars(); // Auto-load environment variables
+        });
+    </script>
+</body>
+</html> 
