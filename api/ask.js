@@ -123,6 +123,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    let llmResponse;
     try {
       llmResponse = await callOpenAI(userInput);
     } catch (error) {
