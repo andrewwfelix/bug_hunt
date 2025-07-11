@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "build": "echo 'Build completed'",
+    "vercel-build": "echo 'Vercel build completed'",
     "start": "node server.js",
     "vercel-dev": "vercel dev"
   },
