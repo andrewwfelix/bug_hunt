@@ -19,6 +19,7 @@ const versionHandler = require('./api/version');
 const simpleTestHandler = require('./api/simple-test');
 const testSimpleHandler = require('./api/test-simple');
 const helloHandler = require('./api/hello');
+const pdfHandler = require('./api/pdf');
 
 // API Routes
 app.post('/api/ask', (req, res) => {
@@ -64,6 +65,10 @@ app.get('/api/test-simple', (req, res) => {
 
 app.get('/api/hello', (req, res) => {
   helloHandler(req, res);
+});
+
+app.get('/api/pdf', (req, res) => {
+  pdfHandler(req, res);
 });
 
 // Health check endpoint
@@ -112,6 +117,7 @@ app.listen(PORT, () => {
   console.log('  GET  /api/test-simple - Another test endpoint');
   console.log('  GET  /api/hello     - Hello endpoint');
   console.log('  GET  /api/test      - Test endpoint (returns 4.0)');
+  console.log('  GET  /api/pdf       - PDF testing endpoint');
   console.log('  POST /api/ask       - Main API endpoint');
   console.log('');
   console.log('🎭 Voice Characters: Joanna, Matthew, Ivy, Justin');
