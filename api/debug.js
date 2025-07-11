@@ -1,4 +1,4 @@
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   
   console.log('Debug endpoint called:', {
@@ -18,7 +18,7 @@ export default function handler(req, res) {
       platform: process.platform,
       env_vars: {
         has_openai: !!process.env.OPENAI_API_KEY,
-        has_supabase: !!process.env.SUPABASE_URL,
+        has_blob_storage: !!process.env.BLOB_STORAGE_URL,
         llm_provider: process.env.LLM_PROVIDER || 'openai',
         node_env: process.env.NODE_ENV || 'development'
       }

@@ -164,7 +164,7 @@ module.exports = function handler(req, res) {
             <h3>📊 Project Info</h3>
             <p><strong>Version:</strong> 1.0.0</p>
             <p><strong>Status:</strong> Ready for Production</p>
-            <p><strong>LLM Support:</strong> Gemini & OpenAI</p>
+            <p><strong>LLM Support:</strong> OpenAI</p>
             <p><strong>Database:</strong> Supabase</p>
             <p><strong>Deployment:</strong> Vercel</p>
         </div>

@@ -1,14 +1,8 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const OpenAI = require('openai');
 const axios = require('axios');
 
-// Initialize LLM clients conditionally
-let genAI = null;
+// Initialize OpenAI client
 let openai = null;
-
-if (process.env.GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-}
 
 if (process.env.OPENAI_API_KEY) {
   openai = new OpenAI({
@@ -17,7 +11,14 @@ if (process.env.OPENAI_API_KEY) {
 }
 
 // Blob storage configuration
-const BLOB_STORAGE_URL = 'https://bug_hunt.blob.vercel-storage.com/Another-Bug-Hunt-v1.2.pdf';
+const BLOB_STORAGE_URL = process.env.BLOB_STORAGE_URL || 'https://kylktwzpqbalcd5g.public.blob.vercel-storage.com';
+const BLOB_STORE_ID = process.env.BLOB_STORE_ID || 'store_kYlKTwzPqBAlcd5g';
+const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+
+// Module content cache
+let moduleContentCache = null;
+let moduleContentCacheTime = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // System prompt for the TTRPG game
 const SYSTEM_PROMPT = `You are the Game Master AI running "Another Bug Hunt," a sci-fi horror TTRPG module.
@@ -35,7 +36,7 @@ IMPORTANT RULES:
 GAME CONTEXT:
 You're on a derelict space station. The crew has been missing for weeks. Strange organic growths cover the walls. Something is hunting in the shadows.
 
-MODULE REFERENCE: The game is based on "Another Bug Hunt v1.2" module stored at https://bug_hunt.blob.vercel-storage.com/Another-Bug-Hunt-v1.2.pdf
+MODULE REFERENCE: The game is based on "Another Bug Hunt v1.2" module stored at ${BLOB_STORAGE_URL}/Another-Bug-Hunt-v1.2.pdf (store ID: ${BLOB_STORE_ID})
 
 KEY LOCATIONS:
 - Medbay: Medical facilities with organic contamination
@@ -76,23 +77,54 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Handle malformed JSON in request body
+  let requestBody;
   try {
-    const { userInput, sessionId } = req.body;
+    requestBody = req.body;
+  } catch (error) {
+    console.error('Error parsing request body:', error);
+    return res.status(400).json({ 
+      error: 'Invalid JSON in request body',
+      message: 'The request body contains malformed JSON'
+    });
+  }
 
-    if (!userInput) {
-      return res.status(400).json({ error: 'userInput is required' });
+  // Validate request body
+  if (!requestBody || typeof requestBody !== 'object') {
+    return res.status(400).json({ 
+      error: 'Invalid request body',
+      message: 'Request body must be a JSON object'
+    });
+  }
+
+  const { userInput, sessionId } = requestBody;
+
+  if (!userInput) {
+    return res.status(400).json({ 
+      error: 'userInput is required',
+      message: 'Please provide a userInput field in the request body'
+    });
+  }
+
+  if (typeof userInput !== 'string') {
+    return res.status(400).json({ 
+      error: 'userInput must be a string',
+      message: 'The userInput field must be a string value'
+    });
+  }
+
+  try {
+    // Check if OpenAI is configured
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured',
+        message: 'Please set OPENAI_API_KEY environment variable',
+        response: '<speak><voice name="Joanna">Sorry, the AI service is not configured. Please check your environment variables.</voice></speak>'
+      });
     }
 
-    // Choose LLM provider (default to OpenAI, fallback to Gemini)
-    const llmProvider = process.env.LLM_PROVIDER || 'openai';
-    let llmResponse;
-
     try {
-      if (llmProvider === 'gemini') {
-        llmResponse = await callGemini(userInput);
-      } else {
-        llmResponse = await callOpenAI(userInput);
-      }
+      llmResponse = await callOpenAI(userInput);
     } catch (error) {
       console.error('LLM Error:', error.message);
       return res.status(500).json({ 
@@ -102,8 +134,8 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Log to Supabase
-    await logToSupabase(sessionId, userInput, llmResponse);
+    // Log to Supabase (disabled - no database configured)
+    // await logToSupabase(sessionId, userInput, llmResponse);
 
     // Return response in Alexa-compatible format
     res.status(200).json({
@@ -120,31 +152,28 @@ module.exports = async function handler(req, res) {
   }
 };
 
-async function callGemini(userInput) {
-  if (!genAI) {
-    throw new Error('Gemini API key not configured');
-  }
-  
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  
-  const prompt = `${SYSTEM_PROMPT}\n\nPlayer says: "${userInput}"\n\nRespond with SSML:`;
-  
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  return response.text();
-}
+
 
 async function callOpenAI(userInput) {
   if (!openai) {
     throw new Error('OpenAI API key not configured');
   }
   
-  const prompt = `${SYSTEM_PROMPT}\n\nPlayer says: "${userInput}"\n\nRespond with SSML:`;
+  // Try to fetch module content from blob storage
+  let moduleContent = '';
+  try {
+    moduleContent = await getModuleContent();
+  } catch (error) {
+    console.warn('Could not fetch module content from blob storage:', error.message);
+    moduleContent = 'Another Bug Hunt v1.2 - Sci-fi Horror TTRPG Module (content not available)';
+  }
+  
+  const enhancedSystemPrompt = `${SYSTEM_PROMPT}\n\nMODULE CONTENT:\n${moduleContent}\n\n`;
   
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: enhancedSystemPrompt },
       { role: "user", content: userInput }
     ],
     max_tokens: 500,
@@ -155,10 +184,78 @@ async function callOpenAI(userInput) {
 }
 
 async function getModuleContent() {
+  // Check cache first
+  const now = Date.now();
+  if (moduleContentCache && moduleContentCacheTime && (now - moduleContentCacheTime) < CACHE_DURATION) {
+    console.log('Using cached module content');
+    return moduleContentCache;
+  }
+
   try {
-    // For now, we'll reference the PDF in the prompt
-    // In the future, you could fetch and parse the PDF content here
-    return `Another Bug Hunt v1.2 - Sci-fi Horror TTRPG Module
+    // Check if we have blob storage configuration
+    if (!BLOB_STORAGE_URL || !BLOB_STORE_ID) {
+      console.warn('Blob storage not configured, using fallback content');
+      const fallbackContent = getFallbackModuleContent();
+      moduleContentCache = fallbackContent;
+      moduleContentCacheTime = now;
+      return fallbackContent;
+    }
+
+    // Construct the blob URL
+    const blobUrl = `${BLOB_STORAGE_URL}/Another-Bug-Hunt-v1.2.pdf`;
+    
+    console.log('Fetching module content from:', blobUrl);
+    
+    // For now, we'll return a structured summary since PDF parsing is complex
+    // In a full implementation, you'd fetch the PDF and extract text content
+    const content = `Another Bug Hunt v1.2 - Sci-fi Horror TTRPG Module
+    
+    SETTING: Derelict space station with organic growths
+    TONE: Horror, survival, investigation
+    THEMES: Isolation, corruption, alien infestation
+    
+    KEY LOCATIONS:
+    - Medbay: Medical facilities with organic contamination
+    - Bridge: Command center with flickering screens  
+    - Engineering: Power systems and maintenance areas
+    - Cargo Bay: Storage areas with mysterious containers
+    - Living Quarters: Crew quarters with personal effects
+    - Air Locks: Entry/exit points to the station
+    
+    ALIEN ELEMENTS:
+    - Organic growths on walls and equipment
+    - Strange sounds and movements in shadows
+    - Contaminated areas with unknown substances
+    - Signs of struggle and missing crew
+    - Mysterious technology and artifacts
+    
+    GAME MECHANICS:
+    - Players investigate the station
+    - Discover clues about missing crew
+    - Encounter alien threats
+    - Manage resources and survival
+    - Make critical decisions under pressure
+    
+    MODULE SOURCE: ${blobUrl}`;
+    
+    // Cache the content
+    moduleContentCache = content;
+    moduleContentCacheTime = now;
+    console.log('Module content cached for 5 minutes');
+    
+    return content;
+    
+  } catch (error) {
+    console.error('Error fetching module content:', error);
+    const fallbackContent = getFallbackModuleContent();
+    moduleContentCache = fallbackContent;
+    moduleContentCacheTime = now;
+    return fallbackContent;
+  }
+}
+
+function getFallbackModuleContent() {
+  return `Another Bug Hunt v1.2 - Sci-fi Horror TTRPG Module
     
     SETTING: Derelict space station with organic growths
     TONE: Horror, survival, investigation
@@ -171,40 +268,9 @@ async function getModuleContent() {
     - NPCs and their motivations
     - Key locations and items
     - Horror elements and jump scares`;
-  } catch (error) {
-    console.error('Error fetching module content:', error);
-    return 'Another Bug Hunt - Sci-fi Horror TTRPG Module';
-  }
 }
 
-async function logToSupabase(sessionId, userInput, llmResponse) {
-  try {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      console.warn('Supabase credentials not configured, skipping logging');
-      return;
-    }
-
-    const logData = {
-      session_id: sessionId || 'default',
-      prompt: userInput,
-      response: llmResponse,
-      created_at: new Date().toISOString()
-    };
-
-    await axios.post(`${supabaseUrl}/rest/v1/logs`, logData, {
-      headers: {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey
-      }
-    });
-
-    console.log('Logged to Supabase successfully');
-  } catch (error) {
-    console.error('Error logging to Supabase:', error);
-    // Don't fail the request if logging fails
-  }
-} 
+// Supabase logging disabled - no database configured
+// async function logToSupabase(sessionId, userInput, llmResponse) {
+//   // Database logging removed for now
+// } 

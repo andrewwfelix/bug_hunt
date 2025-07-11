@@ -4,7 +4,7 @@
 
 ### ✅ Features
 - **Alexa Skill Integration**: Voice-driven TTRPG experience
-- **LLM Support**: Gemini and OpenAI integration
+- **LLM Support**: OpenAI integration
 - **Multi-voice SSML**: Joanna, Matthew, Ivy, Justin voices
 - **Vercel Backend**: Serverless API deployment
 - **Supabase Logging**: Session tracking and analytics
@@ -19,7 +19,7 @@
 ### 🛠️ Technical Stack
 - **Frontend**: Alexa Skill with SSML
 - **Backend**: Node.js on Vercel
-- **AI**: Google Gemini / OpenAI GPT-4o
+- **AI**: OpenAI GPT-4o
 - **Database**: Supabase PostgreSQL
 - **Storage**: Vercel Blob Storage
 

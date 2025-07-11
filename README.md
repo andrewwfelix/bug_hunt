@@ -4,19 +4,19 @@ A voice-driven TTRPG experience powered by Alexa, Vercel, and Large Language Mod
 
 ## 🎮 Overview
 
-When users say "Alexa, open Bug Hunt," they enter a sci-fi horror TTRPG where they navigate a derelict space station. The system uses LLMs (Gemini or GPT-4o) to generate dynamic, immersive responses with multiple voices using SSML.
+When users say "Alexa, open Bug Hunt," they enter a sci-fi horror TTRPG where they navigate a derelict space station. The system uses OpenAI GPT-4o to generate dynamic, immersive responses with multiple voices using SSML.
 
 ## 🏗️ Architecture
 
 ```
-Alexa Device → Alexa Skill → Vercel API → LLM (Gemini/OpenAI) → Supabase Logging
+Alexa Device → Alexa Skill → Vercel API → OpenAI GPT-4o → Supabase Logging
 ```
 
 ### Components
 
 - **Alexa Skill**: Handles voice input/output with SSML support
 - **Vercel Backend**: Node.js API that processes requests and manages LLM calls
-- **LLM Integration**: Supports both Google Gemini and OpenAI GPT-4o
+- **LLM Integration**: OpenAI GPT-4o for dynamic responses
 - **Supabase**: REST API logging for session history and analytics
 - **Vercel Blob Storage**: Hosts the TTRPG module content
 
@@ -37,8 +37,7 @@ Create a `.env.local` file:
 ```env
 # LLM Configuration
 OPENAI_API_KEY=your_openai_key
-GEMINI_API_KEY=your_gemini_key
-LLM_PROVIDER=gemini  # or 'openai'
+LLM_PROVIDER=openai
 
 # Supabase Configuration
 SUPABASE_URL=https://your-project.supabase.co
@@ -117,13 +116,7 @@ The system uses different Alexa voices for immersive storytelling:
 
 ## 🔧 Configuration
 
-### LLM Providers
-
-**Gemini (Default):**
-```env
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_key
-```
+### LLM Provider
 
 **OpenAI:**
 ```env

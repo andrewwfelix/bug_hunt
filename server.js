@@ -12,6 +12,7 @@ app.use(express.static('public'));
 // Import the API handlers
 const askHandler = require('./api/ask');
 const indexHandler = require('./api/index');
+const debugHandler = require('./api/debug');
 
 // API Routes
 app.post('/api/ask', (req, res) => {
@@ -24,6 +25,10 @@ app.get('/', (req, res) => {
 
 app.get('/api', (req, res) => {
   indexHandler(req, res);
+});
+
+app.get('/api/debug', (req, res) => {
+  debugHandler(req, res);
 });
 
 // Health check endpoint
@@ -65,16 +70,17 @@ app.listen(PORT, () => {
   console.log('📋 Available endpoints:');
   console.log('  GET  /              - Homepage with testing interface');
   console.log('  GET  /health        - Health check');
+  console.log('  GET  /api/debug     - Environment debug');
   console.log('  POST /api/ask       - Main API endpoint');
   console.log('');
   console.log('🎭 Voice Characters: Joanna, Matthew, Ivy, Justin');
-  console.log('🤖 LLM Support: Gemini & OpenAI');
+  console.log('🤖 LLM Support: OpenAI');
   console.log('📊 Database: Supabase');
   console.log('');
   console.log('🔧 Environment Check:');
   console.log(`  OpenAI API Key: ${process.env.OPENAI_API_KEY ? '✅ Set' : '❌ Missing'}`);
-  console.log(`  Supabase URL: ${process.env.SUPABASE_URL ? '✅ Set' : '❌ Missing'}`);
-  console.log(`  Supabase Anon Key: ${process.env.SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}`);
+  console.log(`  Blob Storage URL: ${process.env.BLOB_STORAGE_URL ? '✅ Set' : '❌ Missing'}`);
+  console.log(`  Blob Store ID: ${process.env.BLOB_STORE_ID ? '✅ Set' : '❌ Missing'}`);
   console.log('');
   console.log('Press Ctrl+C to stop the server');
 }); 

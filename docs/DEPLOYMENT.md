@@ -35,8 +35,8 @@ Before starting, ensure you have:
 4. **Configure environment variables:**
    Edit `.env.local` with your actual API keys:
    ```env
-   LLM_PROVIDER=gemini
-   GEMINI_API_KEY=your_actual_gemini_key
+   LLM_PROVIDER=openai
+OPENAI_API_KEY=your_actual_openai_key
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_ANON_KEY=your_actual_supabase_key
    ```

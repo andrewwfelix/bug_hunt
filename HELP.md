@@ -52,7 +52,7 @@ bug_hunt/
 - **Justin**: Computer/AI systems
 
 ### LLM Integration
-- **Gemini** (default): Google's AI
+- **OpenAI**: GPT-4o for dynamic responses
 - **OpenAI**: GPT-4o support
 - **Switch**: Set `LLM_PROVIDER=openai` in environment
 
@@ -60,8 +60,8 @@ bug_hunt/
 
 ```env
 # Required
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_key
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your_key
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your_key
 
