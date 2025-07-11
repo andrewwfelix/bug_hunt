@@ -1,6 +1,6 @@
 {
   "name": "bug-hunt-alexa-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Alexa + LLM TTRPG Voice Assistant Backend",
   "main": "index.js",
   "scripts": {
