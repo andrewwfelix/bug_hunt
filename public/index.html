@@ -127,20 +127,46 @@
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
+        .version-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 215, 0, 0.9);
+            color: #1e3c72;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
         @media (max-width: 768px) {
             .grid-2 {
                 grid-template-columns: 1fr;
+            }
+            .version-badge {
+                position: static;
+                margin: 10px 0;
+                text-align: center;
             }
         }
     </style>
 </head>
 <body>
+    <div class="version-badge" id="versionBadge">
+        v<span id="versionBadgeText">1.0.0</span>
+    </div>
     <div class="container">
         <h1>🎮 Bug Hunt</h1>
         <h2>Alexa + LLM TTRPG Voice Assistant</h2>
         
         <div class="status">
             ✅ <strong>Status:</strong> Landing Page Active
+            <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                <strong>Version:</strong> <span id="versionDisplay">1.0.0</span> | 
+                <strong>Build:</strong> <span id="buildTimestamp">Loading...</span> | 
+                <strong>Build #:</strong> <span id="buildNumber">1</span>
+            </div>
         </div>
         
         <!-- API Testing Section -->
@@ -379,6 +405,7 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             checkEndpoints();
+            updateVersionDisplay();
             
             // Allow Enter key to test API
             document.getElementById('testInput').addEventListener('keypress', function(e) {
@@ -387,6 +414,42 @@
                 }
             });
         });
+        
+        // Update version display
+        function updateVersionDisplay() {
+            const versionDisplay = document.getElementById('versionDisplay');
+            const buildTimestamp = document.getElementById('buildTimestamp');
+            const versionBadgeText = document.getElementById('versionBadgeText');
+            const buildNumber = document.getElementById('buildNumber');
+            
+            // Set current version
+            const currentVersion = '1.0.0';
+            versionDisplay.textContent = currentVersion;
+            versionBadgeText.textContent = currentVersion;
+            
+            // Set build timestamp
+            const now = new Date();
+            buildTimestamp.textContent = now.toLocaleString();
+            
+            // Set build number (increments each time page loads)
+            const storedBuildNumber = localStorage.getItem('bugHuntBuildNumber') || 0;
+            const newBuildNumber = parseInt(storedBuildNumber) + 1;
+            localStorage.setItem('bugHuntBuildNumber', newBuildNumber);
+            buildNumber.textContent = newBuildNumber;
+            
+            // Try to fetch version from server
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.version) {
+                        versionDisplay.textContent = data.version;
+                        versionBadgeText.textContent = data.version;
+                    }
+                })
+                .catch(error => {
+                    console.log('Could not fetch server version:', error);
+                });
+        }
     </script>
 </body>
 </html> 
