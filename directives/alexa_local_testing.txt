@@ -1,0 +1,164 @@
+ALEXA SKILL LOCAL TESTING GUIDE
+================================
+
+This document describes how we tested the Bug Hunt Alexa skill locally through command line
+using PowerShell and simulated Alexa requests.
+
+PREREQUISITES
+-------------
+- Node.js server running on localhost:3000
+- PowerShell or Windows Command Prompt
+- All environment variables configured (OpenAI API Key, Blob Storage URL, etc.)
+
+TESTING THE PDF ENDPOINT
+------------------------
+
+1. First, we tested the standalone PDF endpoint to verify PDF parsing works:
+
+   Command:
+   ```
+   Invoke-WebRequest -Uri "http://localhost:3000/api/pdf" -Method GET
+   ```
+
+   Result:
+   - Status: 200 OK
+   - PDF successfully fetched (19.4MB, 44 pages)
+   - PDF parsed successfully (91,292 characters extracted)
+   - Response included timing metrics and PDF metadata
+
+2. Detailed PDF test with response parsing:
+   ```
+   $response = Invoke-WebRequest -Uri "http://localhost:3000/api/pdf" -Method GET
+   $response.Content | ConvertFrom-Json | ConvertTo-Json -Depth 3
+   ```
+
+TESTING THE ALEXA LAUNCH REQUEST
+--------------------------------
+
+We simulated an Alexa LaunchRequest to test the new functionality where the skill:
+1. Reads the PDF when the app opens
+2. Parses the PDF content
+3. Passes the full PDF text to the LLM
+4. Gets confirmation that the LLM has read and understood the module
+
+Command Used:
+```
+echo '{"version":"1.0","session":{"sessionId":"test-123","application":{"applicationId":"test-app"},"user":{"userId":"test-user"}},"request":{"type":"LaunchRequest","requestId":"test-request-123","timestamp":"2025-07-11T23:45:00Z"}}' | Invoke-WebRequest -Uri "http://localhost:3000/api/ask" -Method POST -ContentType "application/json"
+```
+
+Alternative Method (PowerShell Object):
+```
+$launchRequest = @{
+  version = "1.0"
+  session = @{
+    sessionId = "test-session-123"
+    application = @{ applicationId = "test-app" }
+    user = @{ userId = "test-user" }
+  }
+  request = @{
+    type = "LaunchRequest"
+    requestId = "test-request-123"
+    timestamp = "2025-07-11T23:45:00Z"
+  }
+} | ConvertTo-Json -Depth 3
+
+Invoke-WebRequest -Uri "http://localhost:3000/api/ask" -Method POST -Body $launchRequest -ContentType "application/json"
+```
+
+EXPECTED RESPONSE FOR LAUNCH REQUEST
+-----------------------------------
+
+The server should respond with:
+```json
+{
+  "version": "1.0",
+  "response": {
+    "outputSpeech": {
+      "type": "SSML",
+      "ssml": "<speak><voice name=\"Joanna\">I have read and understood the module content. I am ready to begin the game as the Game Master. Let the hunt commence!</voice></speak>"
+    },
+    "shouldEndSession": false
+  }
+}
+```
+
+SERVER LOGS DURING TESTING
+--------------------------
+
+When testing the LaunchRequest, the server logs show:
+```
+=== Alexa Request Debug ===
+Headers: { ... }
+Body: { ... }
+========================
+LaunchRequest detected - reading PDF and initializing LLM
+1. Fetching PDF from blob storage...
+2. PDF URL: https://kylktwzpqbalcd5g.public.blob.vercel-storage.com/Another-Bug-Hunt-v1.2.pdf
+3. PDF fetched successfully, size: 19403824 bytes
+4. Parsing PDF content...
+5. PDF parsed successfully, pages: 44 text length: 91292
+6. Sending PDF content to LLM for initialization...
+7. LLM initialization response: <speak>...</speak>
+```
+
+TESTING THE WARDEN INTENT
+-------------------------
+
+To test the WardenIntent (user commands), use:
+
+```
+echo '{"version":"1.0","session":{"sessionId":"test-123","application":{"applicationId":"test-app"},"user":{"userId":"test-user"}},"request":{"type":"IntentRequest","intent":{"name":"WardenIntent","slots":{"speech":{"value":"tell me about the space station"}}}},"requestId":"test-request-456","timestamp":"2025-07-11T23:45:00Z"}}' | Invoke-WebRequest -Uri "http://localhost:3000/api/ask" -Method POST -ContentType "application/json"
+```
+
+TROUBLESHOOTING
+---------------
+
+1. If you get connection errors:
+   - Ensure the server is running: `npm run dev`
+   - Check the server is on port 3000: `http://localhost:3000/health`
+
+2. If you get JSON parsing errors:
+   - Ensure the JSON is properly formatted
+   - Use single quotes around the JSON string in PowerShell
+   - Escape any special characters
+
+3. If the PDF parsing fails:
+   - Check blob storage configuration
+   - Verify the PDF file exists at the specified URL
+   - Check network connectivity to blob storage
+
+4. If the LLM doesn't respond:
+   - Verify OpenAI API key is set
+   - Check API quota and billing
+   - Review server logs for error messages
+
+PERFORMANCE METRICS
+-------------------
+
+Typical performance during testing:
+- PDF fetch time: ~1.5 seconds
+- PDF parse time: ~1.4 seconds
+- LLM response time: ~2-3 seconds
+- Total LaunchRequest time: ~5-7 seconds
+
+The PDF is 19.4MB with 44 pages and 91,292 characters of extracted text.
+
+DEPLOYMENT TESTING
+------------------
+
+After local testing, deploy to production:
+```
+git add .
+git commit -m "Add PDF reading to LaunchRequest"
+git push origin main
+vercel --prod
+```
+
+Then test the production URL:
+```
+https://your-vercel-url.vercel.app/api/ask
+```
+
+This testing methodology allows us to verify the Alexa skill functionality
+without needing an actual Alexa device, making development and debugging
+much more efficient. 
