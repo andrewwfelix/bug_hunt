@@ -1,5 +1,6 @@
 const OpenAI = require('openai');
 const axios = require('axios');
+const pdfParse = require('pdf-parse');
 
 // Initialize OpenAI client
 let openai = null;
@@ -87,18 +88,94 @@ module.exports = async function handler(req, res) {
 
   // Handle LaunchRequest (skill opened)
   if (alexaRequest.request?.type === 'LaunchRequest') {
-    console.log("LaunchRequest detected - returning welcome message");
+    console.log("LaunchRequest detected - reading PDF and initializing LLM");
     
-    return res.status(200).json({
-      version: "1.0",
-      response: {
-        outputSpeech: {
-          type: "SSML",
-          ssml: "<speak><voice name=\"Joanna\">Welcome Scientist.</voice></speak>"
+    try {
+      // Check if OpenAI is configured
+      if (!process.env.OPENAI_API_KEY) {
+        console.error('OpenAI API key not configured');
+        return res.status(200).json({
+          version: "1.0",
+          response: {
+            outputSpeech: {
+              type: "SSML",
+              ssml: "<speak><voice name=\"Joanna\">Sorry, the AI service is not configured. Please check your environment variables.</voice></speak>"
+            },
+            shouldEndSession: true,
+          },
+        });
+      }
+
+      // Read the PDF from blob storage
+      console.log("1. Fetching PDF from blob storage...");
+      const blobUrl = `${BLOB_STORAGE_URL}/Another-Bug-Hunt-v1.2.pdf`;
+      console.log("2. PDF URL:", blobUrl);
+      
+      const pdfResponse = await axios.get(blobUrl, {
+        responseType: 'arraybuffer',
+        timeout: 30000,
+        headers: {
+          'User-Agent': 'Bug-Hunt-Alexa-Skill/1.0'
+        }
+      });
+      
+      console.log("3. PDF fetched successfully, size:", pdfResponse.data.length, "bytes");
+      
+      // Parse the PDF
+      console.log("4. Parsing PDF content...");
+      const pdfData = await pdfParse(pdfResponse.data);
+      console.log("5. PDF parsed successfully, pages:", pdfData.numpages, "text length:", pdfData.text.length);
+      
+      // Create the initialization prompt for the LLM
+      const initializationPrompt = `You are the Game Master AI for "Another Bug Hunt," a sci-fi horror TTRPG module. 
+
+I have just read the complete PDF module and am ready to begin the game. Here is the module content:
+
+${pdfData.text}
+
+Please respond with a brief confirmation that you have read and understood the module content, and that you are ready to begin the game as the Game Master. Keep your response under 8 seconds when spoken and under 750 characters.
+
+Use SSML format with <speak>...</speak> tags and use <voice name="Joanna"> for narration.`;
+
+      // Call OpenAI with the PDF content
+      console.log("6. Sending PDF content to LLM for initialization...");
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: initializationPrompt }
+        ],
+        max_tokens: 500,
+        temperature: 0.8
+      });
+
+      const llmResponse = completion.choices[0].message.content;
+      console.log("7. LLM initialization response:", llmResponse);
+      
+      return res.status(200).json({
+        version: "1.0",
+        response: {
+          outputSpeech: {
+            type: "SSML",
+            ssml: llmResponse
+          },
+          shouldEndSession: false,
         },
-        shouldEndSession: false,
-      },
-    });
+      });
+      
+    } catch (error) {
+      console.error('Error in LaunchRequest:', error);
+      return res.status(200).json({
+        version: "1.0",
+        response: {
+          outputSpeech: {
+            type: "SSML",
+            ssml: "<speak><voice name=\"Joanna\">Welcome Scientist. The module is loading. Please wait a moment.</voice></speak>"
+          },
+          shouldEndSession: false,
+        },
+      });
+    }
   }
 
   // Handle IntentRequest (user spoke a command)
